@@ -20,7 +20,7 @@ Edit `.env`: sesuaikan `DB_USERNAME` dan `DB_PASSWORD`, lalu isi akun admin awal
 
 ```dotenv
 ADMIN_USERNAME=admin
-ADMIN_PASSWORD="PasswordKuatAnda123"
+ADMIN_PASSWORD="password"
 ```
 
 Jalankan:
