@@ -71,7 +71,7 @@
             <rect x="354" y="126" width="80" height="46" rx="9" fill="#fff" opacity=".85"/>
             <rect x="310" y="76" width="80" height="46" rx="9" fill="#fff" opacity=".92"/>
             {{-- tanda dokumen --}}
-            <rect x="196" y="26" width="92" height="64" rx="12" fill="#e99a68"/>
+            <rect x="196" y="26" width="92" height="64" rx="12" fill="#e2762b"/>
             <path d="M222 48h40M222 60h40M222 72h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
         </svg>
         <span class="auth-tag">STO Alat Berat</span>

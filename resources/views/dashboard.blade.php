@@ -48,11 +48,11 @@
 <div class="grid-2">
     <section class="card">
         <div class="card-head"><div><h2>Jenis Kegiatan</h2><p>Perbandingan STO bongkar dan muat.</p></div></div>
-        @include('components.donut', ['value' => $bongkar, 'total' => $total, 'label' => 'Bongkar', 'other' => 'Muat', 'color' => '#5b6ea9', 'rest' => '#62b3a7'])
+        @include('components.donut', ['value' => $bongkar, 'total' => $total, 'label' => 'Bongkar', 'other' => 'Muat', 'color' => '#2d4383', 'rest' => '#12877a'])
     </section>
     <section class="card">
         <div class="card-head"><div><h2>Kelengkapan SOJ &amp; MMJ</h2><p>STO yang SOJ dan MMJ-nya sudah terisi.</p></div></div>
-        @include('components.donut', ['value' => $complete, 'total' => $total, 'label' => 'Lengkap', 'other' => 'Belum lengkap', 'color' => '#4fa583', 'rest' => '#f4d58c'])
+        @include('components.donut', ['value' => $complete, 'total' => $total, 'label' => 'Lengkap', 'other' => 'Belum lengkap', 'color' => '#0f7f57', 'rest' => '#f2c14e'])
     </section>
 </div>
 
