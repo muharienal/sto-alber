@@ -1,7 +1,7 @@
 @php
     $pct = $total > 0 ? round($value / $total * 100, 1) : 0;
-    $ringColor = $total > 0 ? $color : '#dfe5ee';
-    $ringRest = $total > 0 ? $rest : '#dfe5ee';
+    $ringColor = $total > 0 ? $color : '#E6ECF4';
+    $ringRest = $total > 0 ? $rest : '#E6ECF4';
 @endphp
 <div class="donut-wrap">
     <div class="donut" style="--percent:{{ $pct }}%;--color:{{ $ringColor }};--rest:{{ $ringRest }}" role="img" aria-label="{{ $label }}: {{ $value }} dari {{ $total }} STO ({{ (int) round($pct) }} persen)">

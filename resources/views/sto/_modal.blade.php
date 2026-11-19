@@ -33,7 +33,7 @@
         <div data-view class="view-stack">
             @if($missing)
                 <div class="alert alert-warn" role="alert">
-                    <x-icon name="alert" :size="20" />
+                    <x-icon name="alert" :size="18" />
                     <p><strong>{{ implode(' dan ', $missing) }} masih kosong.</strong> Isi di bawah.</p>
                 </div>
             @endif
@@ -45,8 +45,8 @@
                     <input type="hidden" name="_modal" value="{{ $id }}">
                     <input type="hidden" name="_form" value="references">
                     @if($refBag->any())
-                        <div class="alert alert-danger" role="alert">
-                            <x-icon name="alert" :size="20" />
+                        <div class="alert alert-error" role="alert">
+                            <x-icon name="alert" :size="18" />
                             <ul>@foreach($refBag->all() as $message)<li>{{ $message }}</li>@endforeach</ul>
                         </div>
                     @endif

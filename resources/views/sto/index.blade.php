@@ -19,12 +19,18 @@
 </div>
 
 {{-- ============ Unggah PDF ============ --}}
-<section class="card" aria-labelledby="upload-title">
-    <h2 class="sr-only" id="upload-title">Unggah PDF STO</h2>
+<section class="card" id="unggah" aria-labelledby="upload-title">
+    <div class="card-head">
+        <div class="card-title">
+            <span class="chip-icon tone-orange"><x-icon name="upload" :size="20" /></span>
+            <div><h2 id="upload-title">Unggah PDF STO</h2><p>Satu PDF boleh berisi banyak STO. Data diperiksa dulu sebelum disimpan.</p></div>
+        </div>
+    </div>
+    <div class="card-body">
 
     @if($errors->any())
-        <div class="alert alert-danger" role="alert" style="margin-bottom:20px">
-            <x-icon name="alert" :size="20" />
+        <div class="alert alert-error" role="alert" style="margin-bottom:20px">
+            <x-icon name="alert" :size="18" />
             <div>
                 <strong>PDF gagal diproses</strong>
                 <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -56,25 +62,27 @@
             </div>
         </div>
     </form>
+    </div>
 </section>
 
 {{-- ============ Daftar STO ============ --}}
-<div class="section-head">
-    <h2>Daftar STO <span class="count-pill">{{ number_format($stos->total(), 0, ',', '.') }} STO</span></h2>
-    <div class="head-actions">
-        <a class="btn btn-secondary" href="{{ route('sto.export') }}"><x-icon name="download" :size="18" />Unduh CSV</a>
-        <button type="button" class="btn btn-primary" data-dialog-open="create-sto"><x-icon name="plus" :size="18" />Tambah STO</button>
-    </div>
-</div>
-
 @if($incompleteCount > 0 && request('completeness') !== 'incomplete')
     <div class="alert alert-warn" role="status">
-        <x-icon name="alert" :size="20" />
+        <x-icon name="alert" :size="18" />
         <p><strong>{{ number_format($incompleteCount, 0, ',', '.') }} STO belum lengkap.</strong> SOJ atau MMJ masih kosong. <a href="{{ route('sto.index', ['completeness' => 'incomplete']) }}">Lihat daftar</a></p>
     </div>
 @endif
 
-<form class="filters" method="get" action="{{ route('sto.index') }}" role="search">
+<section class="card list-card" aria-labelledby="list-title">
+<div class="card-head">
+    <h2 id="list-title">Daftar STO <span class="count-pill">{{ number_format($stos->total(), 0, ',', '.') }} STO</span></h2>
+    <div class="head-actions">
+        <a class="btn btn-secondary btn-sm" href="{{ route('sto.export') }}"><x-icon name="download" :size="16" />Unduh CSV</a>
+        <button type="button" class="btn btn-cta btn-sm" data-dialog-open="create-sto"><x-icon name="plus" :size="16" />Tambah STO</button>
+    </div>
+</div>
+
+<form class="card-body filters" method="get" action="{{ route('sto.index') }}" role="search">
     <div class="input-icon">
         <x-icon name="search" :size="18" />
         <input class="input" type="search" name="q" value="{{ request('q') }}" placeholder="Cari nomor, asal, tujuan, SOJ, MMJ" aria-label="Cari nomor, asal, tujuan, SOJ, atau MMJ" maxlength="100">
@@ -90,14 +98,14 @@
         <option value="incomplete" @selected(request('completeness') === 'incomplete')>SOJ/MMJ belum lengkap</option>
         <option value="complete" @selected(request('completeness') === 'complete')>SOJ/MMJ lengkap</option>
     </select>
-    <button type="submit" class="btn btn-navy">Cari</button>
+    <button type="submit" class="btn btn-primary"><x-icon name="search" :size="16" />Cari</button>
     @if($hasFilter)
         <a class="btn btn-ghost" href="{{ route('sto.index') }}"><x-icon name="rotate" :size="16" />Reset</a>
     @endif
 </form>
 
 @if($stos->isEmpty())
-    <div class="table-card">
+    <div class="list-empty">
         <div class="empty">
             <span class="chip-icon"><x-icon name="inbox" :size="26" /></span>
             @if($hasFilter)
@@ -107,13 +115,13 @@
             @else
                 <h3>Belum ada STO</h3>
                 <p>Unggah PDF di atas atau tambah STO manual.</p>
-                <button type="button" class="btn btn-primary btn-sm" data-dialog-open="create-sto" style="margin-top:10px"><x-icon name="plus" :size="16" />Tambah STO</button>
+                <button type="button" class="btn btn-cta btn-sm" data-dialog-open="create-sto" style="margin-top:10px"><x-icon name="plus" :size="16" />Tambah STO</button>
             @endif
         </div>
     </div>
 @else
     {{-- Tabel (desktop) --}}
-    <div class="table-card desk-only">
+    <div class="desk-only">
         <div class="table-scroll" tabindex="0" role="region" aria-label="Tabel STO">
             <table class="data-table">
                 <thead>
@@ -126,7 +134,6 @@
                         <th scope="col">Tujuan</th>
                         <th scope="col">Nama Barang</th>
                         <th scope="col" class="ta-r">Qty</th>
-                        <th scope="col">Satuan</th>
                         <th scope="col" class="ta-r">Tarif</th>
                         <th scope="col" class="ta-r">Total</th>
                         <th scope="col">SOJ / MMJ</th>
@@ -152,8 +159,7 @@
                                     <td rowspan="{{ $span }}" class="place"><div class="clamp" title="{{ $sto->destination }}">{{ $sto->destination }}</div></td>
                                 @endif
                                 <td class="item name">{{ $item?->name ?? '—' }}</td>
-                                <td class="item ta-r">{{ $item ? $qty($item->quantity) : '—' }}</td>
-                                <td class="item">{{ $item?->unit ?? '—' }}</td>
+                                <td class="item ta-r qty">@if($item){{ $qty($item->quantity) }} <span class="unit">{{ $item->unit }}</span>@else — @endif</td>
                                 <td class="item ta-r">{{ $item ? $rupiah($item->rate) : '—' }}</td>
                                 @if($i === 0)
                                     <td rowspan="{{ $span }}" class="total ta-r">{{ $rupiah($sto->total) }}</td>
@@ -163,9 +169,9 @@
                                     </td>
                                     <td rowspan="{{ $span }}">
                                         <div class="row-actions">
-                                            <button type="button" class="btn btn-secondary btn-sm" data-dialog-open="sto-{{ $sto->id }}">Detail</button>
+                                            <button type="button" class="icon-btn act" data-dialog-open="sto-{{ $sto->id }}" title="Detail STO" aria-label="Detail STO {{ $sto->number }}"><x-icon name="eye" :size="17" /></button>
                                             @if($sto->batch && $sto->source_page)
-                                                <a class="btn btn-secondary btn-sm" target="_blank" rel="noopener" href="{{ route('sto.pdf', $sto) }}#page={{ $sto->source_page }}"><x-icon name="external" :size="15" />PDF</a>
+                                                <a class="icon-btn act" target="_blank" rel="noopener" href="{{ route('sto.pdf', $sto) }}#page={{ $sto->source_page }}" title="Buka PDF sumber" aria-label="Buka PDF STO {{ $sto->number }}"><x-icon name="external" :size="17" /></a>
                                             @endif
                                         </div>
                                     </td>
@@ -221,9 +227,10 @@
 
     {{ $stos->links() }}
 @endif
+</section>
 
 {{-- ============ Modal tambah STO ============ --}}
-<dialog class="modal modal-lg is-editing" id="create-sto" data-always-edit aria-labelledby="create-sto-title" @if($createSubmitted) data-autoopen @endif>
+<dialog class="modal modal-lg is-editing" id="create-sto" data-always-edit aria-labelledby="create-sto-title" @if($createSubmitted || (request()->boolean('tambah') && ! isset($batch))) data-autoopen @endif>
     <div class="modal-head">
         <span class="chip-icon tone-orange"><x-icon name="plus" :size="20" /></span>
         <div class="titles">
@@ -265,7 +272,7 @@
 @endphp
 <dialog class="modal" id="preview-modal" open autofocus data-autoopen data-persistent aria-labelledby="preview-title">
     <div class="modal-head">
-        <span class="chip-icon"><x-icon name="file" :size="20" /></span>
+        <span class="chip-icon tone-blue"><x-icon name="file" :size="20" /></span>
         <div class="titles">
             <h2 id="preview-title">Pratinjau Impor</h2>
             <p title="{{ $batch->original_name }}">{{ $batch->original_name }}</p>
@@ -281,13 +288,13 @@
         </div>
 
         <div class="alert alert-info">
-            <x-icon name="info" :size="20" />
+            <x-icon name="info" :size="18" />
             <p>Data belum tersimpan. Periksa hasil bacaan, lalu klik <strong>Simpan</strong>.</p>
         </div>
 
         @if(count($batch->warnings))
-            <div class="alert alert-danger" role="alert">
-                <x-icon name="alert" :size="20" />
+            <div class="alert alert-error" role="alert">
+                <x-icon name="alert" :size="18" />
                 <div>
                     <strong>Gagal dibaca (tidak disimpan):</strong>
                     <ul>@foreach($batch->warnings as $w)<li>{{ $w }}</li>@endforeach</ul>

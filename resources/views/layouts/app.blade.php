@@ -3,73 +3,106 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>@yield('title', 'Dashboard') · STO Alber</title>
+    <title>@yield('title', 'Dashboard') · {{ config('app.brand') }}</title>
     @include('partials.assets')
 </head>
 <body>
+@php
+    $me = auth()->user();
+    $initials = collect(preg_split('/\s+/', trim($me->name)))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: 'U';
+    $onDash = request()->routeIs('dashboard');
+    $onSto = request()->routeIs('sto.*');
+    $onAccount = request()->routeIs('account');
+    $onStoPage = request()->routeIs('sto.index', 'sto.preview');
+@endphp
 <a class="skip-link" href="#main-content">Langsung ke konten</a>
 
-<header class="topbar">
-    <div class="topbar-in container">
-        <a class="brand" href="{{ route('dashboard') }}" aria-label="STO Alber, ke Dashboard">
-            <x-logo :size="40" class="brand-logo" />
-            <span class="brand-name">STO <b>Alber</b></span>
-        </a>
+<div class="app">
+    {{-- ===================== SIDEBAR ===================== --}}
+    <aside class="sidebar" id="sidebar" aria-label="Navigasi">
+        <div class="side-top">
+            <a class="brand" href="{{ route('dashboard') }}" aria-label="{{ config('app.brand') }}, ke Dashboard">
+                <span class="co-tile"><img src="{{ asset('images/logo-pcs.png') }}" alt="PT Petrokopindo Cipta Selaras"></span>
+                <span class="brand-sep"></span>
+                @include('partials.lockup')
+            </a>
+            <button type="button" class="icon-btn side-close" data-nav-close aria-label="Tutup menu"><x-icon name="x" :size="20" /></button>
+        </div>
 
-        <nav class="mainnav" aria-label="Menu utama">
-            <a class="navlink {{ request()->routeIs('dashboard') ? 'is-active' : '' }}" href="{{ route('dashboard') }}" @if(request()->routeIs('dashboard')) aria-current="page" @endif>
-                <x-icon name="grid" :size="18" /><span>Dashboard</span>
-            </a>
-            <a class="navlink {{ request()->routeIs('sto.*') ? 'is-active' : '' }}" href="{{ route('sto.index') }}" @if(request()->routeIs('sto.*')) aria-current="page" @endif>
-                <x-icon name="layers" :size="18" /><span>Master STO</span>
-            </a>
+        <nav class="side-nav" aria-label="Menu utama">
+            <span class="side-label">Menu</span>
+            <a class="side-link {{ $onDash ? 'active' : '' }}" href="{{ route('dashboard') }}" @if($onDash) aria-current="page" @endif><x-icon name="grid" :size="19" />Dashboard</a>
+            <a class="side-link {{ $onSto ? 'active' : '' }}" href="{{ route('sto.index') }}" @if($onSto) aria-current="page" @endif><x-icon name="layers" :size="19" />Master STO</a>
+
+            <span class="side-label">Aksi cepat</span>
+            <a class="side-link" href="{{ route('sto.index') }}#unggah" data-nav-close><x-icon name="upload" :size="19" />Unggah PDF</a>
+            @if($onStoPage)
+                <button type="button" class="side-link" data-dialog-open="create-sto" data-nav-close><x-icon name="plus" :size="19" />Tambah STO</button>
+            @else
+                <a class="side-link" href="{{ route('sto.index', ['tambah' => 1]) }}"><x-icon name="plus" :size="19" />Tambah STO</a>
+            @endif
+            <a class="side-link" href="{{ route('sto.export') }}"><x-icon name="download" :size="19" />Unduh CSV</a>
+
+            <span class="side-label">Akun</span>
+            <a class="side-link {{ $onAccount ? 'active' : '' }}" href="{{ route('account') }}" @if($onAccount) aria-current="page" @endif><x-icon name="key" :size="19" />Akun &amp; Password</a>
         </nav>
 
-        <details class="usermenu">
-            <summary aria-label="Menu akun">
-                <span class="avatar">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
-                <span class="uname">{{ auth()->user()->name }}</span>
-                <x-icon name="chevron-down" :size="16" class="chev" />
-            </summary>
-            <div class="menu-pop">
-                <div class="who">
-                    <strong>{{ auth()->user()->name }}</strong>
-                    <span>{{ auth()->user()->username }}</span>
-                </div>
-                <a href="{{ route('account') }}"><x-icon name="key" :size="18" />Akun</a>
+        <div class="side-foot">
+            <div class="side-user">
+                <span class="avatar">{{ $initials }}</span>
+                <span class="who"><strong>{{ $me->name }}</strong><small>{{ $me->username }}</small></span>
                 <form method="post" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="is-danger"><x-icon name="logout" :size="18" />Keluar</button>
+                    <button type="submit" class="icon-btn" title="Keluar" aria-label="Keluar"><x-icon name="logout" :size="18" /></button>
                 </form>
             </div>
-        </details>
-    </div>
-</header>
-
-@if(session('success'))
-    <div class="toast-stack">
-        <div class="toast" role="status">
-            <x-icon name="check-circle" :size="22" />
-            <p>{{ session('success') }}</p>
-            <button type="button" class="icon-btn" data-toast-close aria-label="Tutup pemberitahuan"><x-icon name="x" :size="18" /></button>
         </div>
-    </div>
-@endif
+    </aside>
+    <div class="side-backdrop" data-nav-close></div>
 
-<main class="container page" id="main-content">
-    @if($errors->any() && ! $__env->hasSection('local_errors'))
-        <div class="alert alert-danger" role="alert">
-            <x-icon name="alert" :size="20" />
-            <div>
-                <strong>Periksa kembali isian Anda:</strong>
-                <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+    {{-- ===================== KONTEN ===================== --}}
+    <div class="main">
+        <header class="topbar">
+            <button type="button" class="icon-btn nav-toggle" data-nav-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Buka menu"><x-icon name="menu" :size="22" /></button>
+            <a class="brand topbar-brand" href="{{ route('dashboard') }}">@include('partials.lockup')</a>
+            <div class="crumbs">
+                <span>{{ config('app.brand') }}</span>
+                <x-icon name="chevron-right" :size="14" />
+                <strong>@yield('title', 'Dashboard')</strong>
             </div>
-        </div>
-    @endif
+            <div class="topbar-actions">
+                <span class="today"><x-icon name="calendar" :size="16" />{{ now()->translatedFormat('l, d F Y') }}</span>
+                <a class="btn btn-cta btn-sm" href="{{ route('sto.index') }}#unggah"><x-icon name="upload" :size="16" /><span>Unggah PDF</span></a>
+            </div>
+        </header>
 
-    @yield('content')
-</main>
+        @if(session('success'))
+            <div class="toasts" popover="manual" aria-live="polite">
+                <div class="toast toast-success" role="status">
+                    <span class="toast-ic"><x-icon name="check-circle" :size="20" /></span>
+                    <div class="toast-body"><strong>Berhasil</strong><span>{{ session('success') }}</span></div>
+                    <button type="button" class="toast-x" data-toast-close aria-label="Tutup pemberitahuan"><x-icon name="x" :size="16" /></button>
+                    <i class="toast-bar"></i>
+                </div>
+            </div>
+        @endif
 
-<footer class="footer container">@include('partials.copyright')</footer>
+        <main class="shell" id="main-content">
+            @if($errors->any() && ! $__env->hasSection('local_errors'))
+                <div class="alert alert-error" role="alert">
+                    <x-icon name="alert" :size="18" />
+                    <div>
+                        <strong>Periksa kembali isian Anda:</strong>
+                        <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                    </div>
+                </div>
+            @endif
+
+            @yield('content')
+        </main>
+
+        <footer class="footer">@include('partials.copyright')</footer>
+    </div>
+</div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* STO Alber — peningkatan tampilan (tanpa library, tanpa npm).
+/* STO Alat Berat Wilayah 1 — peningkatan tampilan (tanpa library, tanpa npm).
    Halaman tetap berfungsi tanpa berkas ini; skrip hanya menambah kenyamanan. */
 (function () {
   'use strict';
@@ -16,6 +16,22 @@
       if (e.key === 'Escape' && menu.open) { menu.open = false; $('summary', menu).focus(); }
     });
   }
+
+  /* ---- Menu samping (HP & tablet): buka/tutup sebagai laci ---- */
+  var navToggle = $('[data-nav-toggle]');
+  function setNav(open) {
+    document.body.classList.toggle('nav-open', open);
+    if (navToggle) { navToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+  }
+  if (navToggle) {
+    navToggle.addEventListener('click', function () { setNav(!document.body.classList.contains('nav-open')); });
+  }
+  $$('[data-nav-close]').forEach(function (el) {
+    el.addEventListener('click', function () { setNav(false); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.body.classList.contains('nav-open')) { setNav(false); if (navToggle) { navToggle.focus(); } }
+  });
 
   /* ---- Toast: hilang otomatis ---- */
   $$('.toast').forEach(function (toast) {
@@ -160,6 +176,14 @@
       dlg.focus({ preventScroll: true });
     }
   });
+
+  /* ---- Toast di atas modal: jadikan popover (lapisan teratas) setelah modal dibuka ---- */
+  var toastStack = $('.toasts[popover]');
+  if (toastStack && toastStack.showPopover) {
+    try { toastStack.showPopover(); } catch (err) { /* abaikan */ }
+  } else if (toastStack) {
+    toastStack.removeAttribute('popover');
+  }
 
   /* ---- Form STO: baris barang dinamis dan hitung biaya otomatis ---- */
   var rupiah = function (cents) {

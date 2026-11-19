@@ -1,4 +1,4 @@
-# STO Alber
+# STO Alat Berat Wilayah 1
 
 ## Instalasi
 
@@ -13,7 +13,7 @@ php artisan key:generate
 Buat database:
 
 ```bash
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS sto_alber CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS sto_alat_berat_w1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
 Edit `.env`: sesuaikan `DB_USERNAME` dan `DB_PASSWORD`, lalu isi akun admin awal (password minimal 12 karakter):

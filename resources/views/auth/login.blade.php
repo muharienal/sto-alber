@@ -3,35 +3,40 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Masuk · STO Alber</title>
+    <title>Masuk · {{ config('app.brand') }}</title>
     @include('partials.assets')
 </head>
-<body>
-<div class="auth">
-    <main class="auth-main">
-        <a class="brand" href="{{ route('login') }}" aria-label="STO Alber">
-            <x-logo :size="40" class="brand-logo" />
-            <span class="brand-name">STO <b>Alber</b></span>
-        </a>
+<body class="login-page">
+<main class="login">
+    <div class="login-card">
+        {{-- ===== Form ===== --}}
+        <section class="login-form">
+            <div class="login-brand">
+                <span class="co-tile"><img src="{{ asset('images/logo-pcs.png') }}" alt="PT Petrokopindo Cipta Selaras"></span>
+                <span class="brand-sep"></span>
+                <span class="brand">@include('partials.lockup')</span>
+            </div>
 
-        <div class="auth-form">
-            <h1>Masuk</h1>
-            <p>Gunakan username dan password Anda.</p>
+            <div class="login-head">
+                <span class="eyebrow">Master dokumen STO</span>
+                <h1>Masuk ke akun Anda</h1>
+                <p>Gunakan username dan password yang diberikan admin.</p>
+            </div>
 
-            @if($errors->any())
-                <div class="alert alert-danger" role="alert">
-                    <x-icon name="alert" :size="20" />
-                    <p>{{ $errors->first() }}</p>
-                </div>
-            @endif
-
-            <form method="post" action="{{ route('login.submit') }}" data-loading>
+            <form method="post" action="{{ route('login.submit') }}" class="auth-form" data-loading>
                 @csrf
+                @if($errors->any())
+                    <div class="alert alert-error" role="alert">
+                        <x-icon name="alert" :size="18" />
+                        <p>{{ $errors->first() }}</p>
+                    </div>
+                @endif
+
                 <div class="field">
                     <label class="field-label" for="username">Username</label>
                     <div class="input-icon">
                         <x-icon name="user" :size="18" />
-                        <input class="input" id="username" name="username" value="{{ old('username') }}" autocomplete="username" required autofocus placeholder="Masukkan username">
+                        <input class="input {{ $errors->any() ? 'is-invalid' : '' }}" id="username" name="username" value="{{ old('username') }}" autocomplete="username" required autofocus placeholder="Masukkan username">
                     </div>
                 </div>
                 <div class="field">
@@ -44,40 +49,21 @@
                         </button>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg btn-block" data-submit data-loading-text="Memproses…">Masuk</button>
+                <button type="submit" class="btn btn-cta btn-lg btn-block" data-submit data-loading-text="Memproses…">Masuk <x-icon name="arrow-right" :size="18" /></button>
             </form>
-        </div>
 
-        <p class="auth-copy">@include('partials.copyright')</p>
-    </main>
+            <p class="login-copy">@include('partials.copyright')</p>
+        </section>
 
-    <aside class="auth-panel" aria-hidden="true">
-        <svg class="auth-art" viewBox="0 0 480 330" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="8" y="296" width="464" height="10" rx="5" fill="#fff" opacity=".18"/>
-            {{-- palet kiri --}}
-            <rect x="40" y="276" width="170" height="18" rx="4" fill="#fff" opacity=".35"/>
-            <rect x="48" y="226" width="74" height="46" rx="9" fill="#fff" opacity=".92"/>
-            <rect x="128" y="226" width="74" height="46" rx="9" fill="#fff" opacity=".7"/>
-            <rect x="48" y="176" width="74" height="46" rx="9" fill="#fff" opacity=".6"/>
-            <rect x="128" y="176" width="74" height="46" rx="9" fill="#fff" opacity=".92"/>
-            <rect x="88" y="126" width="74" height="46" rx="9" fill="#fff" opacity=".8"/>
-            {{-- palet kanan --}}
-            <rect x="260" y="276" width="190" height="18" rx="4" fill="#fff" opacity=".35"/>
-            <rect x="268" y="226" width="80" height="46" rx="9" fill="#fff" opacity=".7"/>
-            <rect x="354" y="226" width="80" height="46" rx="9" fill="#fff" opacity=".92"/>
-            <rect x="268" y="176" width="80" height="46" rx="9" fill="#fff" opacity=".92"/>
-            <rect x="354" y="176" width="80" height="46" rx="9" fill="#fff" opacity=".6"/>
-            <rect x="268" y="126" width="80" height="46" rx="9" fill="#fff" opacity=".6"/>
-            <rect x="354" y="126" width="80" height="46" rx="9" fill="#fff" opacity=".85"/>
-            <rect x="310" y="76" width="80" height="46" rx="9" fill="#fff" opacity=".92"/>
-            {{-- tanda dokumen --}}
-            <rect x="196" y="26" width="92" height="64" rx="12" fill="#e2762b"/>
-            <path d="M222 48h40M222 60h40M222 72h24" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-        </svg>
-        <span class="auth-tag">STO Alat Berat</span>
-        <h2>Data STO<br>rapi di satu tempat.</h2>
-        <p>Impor dari PDF, periksa, lalu simpan.</p>
-    </aside>
-</div>
+        {{-- ===== Panel judul ===== --}}
+        <aside class="login-visual">
+            <div class="login-caption">
+                <span class="eyebrow">STO Alat Berat Wilayah 1</span>
+                <h2>Dokumen STO, <em>rapi dan lengkap</em> di satu tempat.</h2>
+                <p>Impor STO langsung dari PDF, periksa pratinjaunya, lalu lengkapi SOJ dan MMJ sampai tuntas.</p>
+            </div>
+        </aside>
+    </div>
+</main>
 </body>
 </html>

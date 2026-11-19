@@ -1,7 +1,7 @@
 {
-  "name": "sto-alber/app",
+  "name": "sto-alat-berat-wilayah-1/app",
   "type": "project",
-  "description": "STO Alber Master STO tanpa npm",
+  "description": "STO Alat Berat Wilayah 1 - Master STO tanpa npm",
   "require": {
     "php": "^8.2",
     "laravel/framework": "^12.0",

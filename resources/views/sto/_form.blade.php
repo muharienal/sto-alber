@@ -29,8 +29,8 @@
     <input type="hidden" name="_form" value="{{ $formName }}">
 
     @if($bag->any())
-        <div class="alert alert-danger" role="alert">
-            <x-icon name="alert" :size="20" />
+        <div class="alert alert-error" role="alert">
+            <x-icon name="alert" :size="18" />
             <div>
                 <strong>Periksa isian berikut:</strong>
                 <ul>@foreach($bag->all() as $message)<li>{{ $message }}</li>@endforeach</ul>
