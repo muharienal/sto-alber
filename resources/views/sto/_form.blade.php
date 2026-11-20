@@ -27,6 +27,13 @@
     @if($method !== 'POST') @method($method) @endif
     <input type="hidden" name="_modal" value="{{ $modalId }}">
     <input type="hidden" name="_form" value="{{ $formName }}">
+    @if($formName === 'create')
+        {{-- Diisi saat "Tambah manual" dari STO gagal dibaca: menautkan STO ke halaman PDF sumbernya. --}}
+        <input type="hidden" name="import_batch_id" value="{{ $submitted ? old('import_batch_id') : '' }}" data-prefill-field="import_batch_id">
+        <input type="hidden" name="source_page" value="{{ $submitted ? old('source_page') : '' }}" data-prefill-field="source_page">
+        <input type="hidden" name="_prefill_source" value="{{ $submitted ? old('_prefill_source') : '' }}" data-prefill-field="source">
+        <input type="hidden" name="_prefill_pdf" value="{{ $submitted ? old('_prefill_pdf') : '' }}" data-prefill-field="pdf">
+    @endif
 
     @if($bag->any())
         <div class="alert alert-error" role="alert">

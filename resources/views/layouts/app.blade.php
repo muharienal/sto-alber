@@ -14,6 +14,14 @@
     $onSto = request()->routeIs('sto.*');
     $onAccount = request()->routeIs('account');
     $onStoPage = request()->routeIs('sto.index', 'sto.preview');
+    $onTrash = request()->routeIs('sto.trash');
+    $onSto = $onSto && ! $onTrash;
+    $isAdmin = $me->isAdmin();
+    $onRekap = request()->routeIs('rekap');
+    $onUsers = request()->routeIs('users.*');
+    $trashCount = $isAdmin ? \App\Models\Sto::onlyTrashed()->count() : 0;
+    // Unduh Excel memakai filter yang sedang aktif di Master STO.
+    $exportQuery = $onStoPage ? request()->only(\App\Http\Controllers\StoController::FILTER_KEYS) : [];
 @endphp
 <a class="skip-link" href="#main-content">Langsung ke konten</a>
 
@@ -33,24 +41,22 @@
             <span class="side-label">Menu</span>
             <a class="side-link {{ $onDash ? 'active' : '' }}" href="{{ route('dashboard') }}" @if($onDash) aria-current="page" @endif><x-icon name="grid" :size="19" />Dashboard</a>
             <a class="side-link {{ $onSto ? 'active' : '' }}" href="{{ route('sto.index') }}" @if($onSto) aria-current="page" @endif><x-icon name="layers" :size="19" />Master STO</a>
-
-            <span class="side-label">Aksi cepat</span>
-            <a class="side-link" href="{{ route('sto.index') }}#unggah" data-nav-close><x-icon name="upload" :size="19" />Unggah PDF</a>
-            @if($onStoPage)
-                <button type="button" class="side-link" data-dialog-open="create-sto" data-nav-close><x-icon name="plus" :size="19" />Tambah STO</button>
-            @else
-                <a class="side-link" href="{{ route('sto.index', ['tambah' => 1]) }}"><x-icon name="plus" :size="19" />Tambah STO</a>
+            <a class="side-link {{ $onRekap ? 'active' : '' }}" href="{{ route('rekap') }}" @if($onRekap) aria-current="page" @endif><x-icon name="chart" :size="19" />Rekap</a>
+            @if($isAdmin)
+                <a class="side-link {{ $onTrash ? 'active' : '' }}" href="{{ route('sto.trash') }}" @if($onTrash) aria-current="page" @endif><x-icon name="trash" :size="19" />Sampah @if($trashCount)<span class="side-count">{{ $trashCount }}</span>@endif</a>
             @endif
-            <a class="side-link" href="{{ route('sto.export') }}"><x-icon name="download" :size="19" />Unduh CSV</a>
 
-            <span class="side-label">Akun</span>
+            <span class="side-label">Pengaturan</span>
+            @if($isAdmin)
+                <a class="side-link {{ $onUsers ? 'active' : '' }}" href="{{ route('users.index') }}" @if($onUsers) aria-current="page" @endif><x-icon name="users" :size="19" />Pengguna</a>
+            @endif
             <a class="side-link {{ $onAccount ? 'active' : '' }}" href="{{ route('account') }}" @if($onAccount) aria-current="page" @endif><x-icon name="key" :size="19" />Akun &amp; Password</a>
         </nav>
 
         <div class="side-foot">
             <div class="side-user">
                 <span class="avatar">{{ $initials }}</span>
-                <span class="who"><strong>{{ $me->name }}</strong><small>{{ $me->username }}</small></span>
+                <span class="who"><strong>{{ $me->name }}</strong><small>{{ $me->roleLabel() }}</small></span>
                 <form method="post" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="icon-btn" title="Keluar" aria-label="Keluar"><x-icon name="logout" :size="18" /></button>
@@ -72,7 +78,6 @@
             </div>
             <div class="topbar-actions">
                 <span class="today"><x-icon name="calendar" :size="16" />{{ now()->translatedFormat('l, d F Y') }}</span>
-                <a class="btn btn-cta btn-sm" href="{{ route('sto.index') }}#unggah"><x-icon name="upload" :size="16" /><span>Unggah PDF</span></a>
             </div>
         </header>
 
@@ -80,7 +85,15 @@
             <div class="toasts" popover="manual" aria-live="polite">
                 <div class="toast toast-success" role="status">
                     <span class="toast-ic"><x-icon name="check-circle" :size="20" /></span>
-                    <div class="toast-body"><strong>Berhasil</strong><span>{{ session('success') }}</span></div>
+                    <div class="toast-body">
+                        <strong>Berhasil</strong><span>{{ session('success') }}</span>
+                        @if(is_array(session('undo')))
+                            <form method="post" action="{{ session('undo')['action'] }}" class="toast-undo">
+                                @csrf
+                                <button type="submit" class="btn btn-secondary btn-sm"><x-icon name="rotate" :size="15" />{{ session('undo')['label'] }}</button>
+                            </form>
+                        @endif
+                    </div>
                     <button type="button" class="toast-x" data-toast-close aria-label="Tutup pemberitahuan"><x-icon name="x" :size="16" /></button>
                     <i class="toast-bar"></i>
                 </div>

@@ -7,7 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Validasi tambah dan ubah STO secara manual.
+ * Validasi tambah dan ubah STO secara manual (pesan: lang/id/validation.php).
  * Kesalahan disimpan pada error bag "sto" agar tidak tercampur dengan
  * kesalahan unggah PDF pada halaman yang sama.
  */
@@ -36,7 +36,14 @@ class StoRequest extends FormRequest
             'number' => [
                 'required', 'string', 'max:40',
                 'regex:/^[0-9A-Za-z][0-9A-Za-z._\/-]*$/',
-                Rule::unique('stos', 'number')->ignore($current instanceof Sto ? $current->id : null),
+                Rule::unique('stos', 'number')->ignore($current instanceof Sto ? $current->id : null)->whereNull('deleted_at'),
+                function (string $attribute, mixed $value, \Closure $fail) use ($current) {
+                    $inTrash = Sto::onlyTrashed()->where('number', trim((string) $value))
+                        ->when($current instanceof Sto, fn ($q) => $q->whereKeyNot($current->id))->exists();
+                    if ($inTrash) {
+                        $fail('Nomor STO ini ada di Sampah. Pulihkan dari menu Sampah, atau hapus permanen dulu.');
+                    }
+                },
             ],
             'document_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:2000-01-01', 'before_or_equal:2100-12-31'],
             'activity' => ['required', 'in:BONGKAR,MUAT'],
@@ -44,6 +51,9 @@ class StoRequest extends FormRequest
             'destination' => ['required', 'string', 'max:1000'],
             'soj' => ['nullable', 'string', 'max:100'],
             'mmj' => ['nullable', 'string', 'max:100'],
+            // Hanya saat menambah manual dari STO gagal-baca: tautkan ke PDF impor milik pengguna sendiri.
+            'import_batch_id' => ['nullable', 'integer', Rule::exists('import_batches', 'id')->where('user_id', $this->user()?->id)],
+            'source_page' => ['nullable', 'integer', 'min:1', 'max:1000'],
             'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.quantity' => ['required', 'numeric', 'decimal:0,3', 'gt:0', 'max:1000000'],
@@ -52,56 +62,5 @@ class StoRequest extends FormRequest
         ];
     }
 
-    public function attributes(): array
-    {
-        return [
-            'number' => 'Nomor STO',
-            'document_date' => 'Tanggal',
-            'activity' => 'Kegiatan',
-            'origin' => 'Asal',
-            'destination' => 'Tujuan',
-            'soj' => 'SOJ',
-            'mmj' => 'MMJ',
-            'items' => 'Barang',
-            'items.*.name' => 'Nama barang',
-            'items.*.quantity' => 'Qty',
-            'items.*.unit' => 'Satuan',
-            'items.*.rate' => 'Tarif',
-        ];
-    }
-
-    public function messages(): array
-    {
-        return self::indonesianMessages();
-    }
-
-    /** Pesan validasi berbahasa Indonesia (aplikasi belum memiliki berkas lang). */
-    public static function indonesianMessages(): array
-    {
-        return [
-            'required' => ':attribute wajib diisi.',
-            'string' => ':attribute harus berupa teks.',
-            'numeric' => ':attribute harus berupa angka.',
-            'decimal' => ':attribute maksimal :decimal angka di belakang koma.',
-            'in' => ':attribute tidak valid.',
-            'regex' => ':attribute hanya boleh berisi huruf, angka, titik, garis miring, garis bawah, dan strip.',
-            'unique' => ':attribute sudah dipakai STO lain.',
-            'date_format' => ':attribute tidak valid.',
-            'after_or_equal' => ':attribute tidak boleh sebelum :date.',
-            'before_or_equal' => ':attribute tidak boleh setelah :date.',
-            'array' => ':attribute tidak valid.',
-            'max' => [
-                'string' => ':attribute maksimal :max karakter.',
-                'numeric' => ':attribute maksimal :max.',
-                'array' => 'Maksimal :max baris barang.',
-            ],
-            'min' => [
-                'numeric' => ':attribute minimal :min.',
-                'array' => 'Isi minimal :min baris barang.',
-            ],
-            'gt' => [
-                'numeric' => ':attribute harus lebih besar dari :value.',
-            ],
-        ];
-    }
+    // Pesan dan nama kolom ada di lang/id/validation.php.
 }

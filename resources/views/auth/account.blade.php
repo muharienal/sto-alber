@@ -17,7 +17,7 @@
     <section class="card pad profile" aria-label="Profil">
         <span class="avatar avatar-lg">{{ $initials }}</span>
         <h2>{{ $me->name }}</h2>
-        <p>Username {{ $me->username }}</p>
+        <p>Username {{ $me->username }} · {{ $me->roleLabel() }}</p>
     </section>
 
     <section class="card" aria-labelledby="pw-title">

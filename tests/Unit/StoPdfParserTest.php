@@ -5,7 +5,7 @@ use PHPUnit\Framework\TestCase;
 class StoPdfParserTest extends TestCase {
  public function test_actual_uploaded_pdf_extracts_62_orders_and_correct_decimal_values(): void {
   $result=(new StoPdfParser())->parse(__DIR__.'/../Fixtures/STO.pdf');
-  $this->assertCount(62,$result['rows']);$this->assertSame([],$result['warnings']);
+  $this->assertCount(62,$result['rows']);$this->assertSame([],$result['warnings']);$this->assertSame([],$result['failed']);
   $first=$result['rows'][0];$this->assertSame('MUAT',$first['activity']);$this->assertSame('5520078169',$first['number']);$this->assertSame('2026-01-05',$first['document_date']);$this->assertSame('Urea SUB @50 KG',$first['items'][0]['name']);$this->assertSame('185.000',$first['items'][0]['quantity']);$this->assertSame('2617750.00',$first['total']);
   $count=array_count_values(array_column($result['rows'],'activity'));$this->assertSame(52,$count['MUAT']);$this->assertSame(10,$count['BONGKAR']);
   $this->assertSame('5520078285',$result['rows'][11]['number']);$this->assertSame('BONGKAR',$result['rows'][11]['activity']);
@@ -21,8 +21,16 @@ class StoPdfParserTest extends TestCase {
  public function test_scan_or_unknown_format_is_rejected(): void {
   $this->expectException(\RuntimeException::class);(new StoPdfParser())->parseText('');
  }
- public function test_invalid_date_is_rejected(): void {
-  $this->expectException(\RuntimeException::class);(new StoPdfParser())->parseText(str_replace('01.02.2026','31.02.2026',$this->text()));
+ public function test_invalid_date_is_rejected_but_other_parts_are_kept_for_manual_entry(): void {
+  $r=(new StoPdfParser())->parseText(str_replace('01.02.2026','31.02.2026',$this->text()));
+  $this->assertSame([],$r['rows']);$this->assertCount(1,$r['failed']);
+  $f=$r['failed'][0];$this->assertSame('1234567890',$f['number']);$this->assertSame(1,$f['source_page']);$this->assertArrayNotHasKey('document_date',$f);
+  $this->assertSame('MUAT',$f['activity']);$this->assertSame('Gudang Gresik',$f['origin']);$this->assertCount(2,$f['items']);$this->assertSame('2.000',$f['items'][0]['quantity']);
+  $this->assertStringContainsString('Tanggal dokumen tidak valid',$f['message']);
+ }
+ public function test_broken_item_table_keeps_header_fields(): void {
+  $r=(new StoPdfParser())->parseText(str_replace('Total 800','',$this->text()));
+  $f=$r['failed'][0];$this->assertSame('2026-02-01',$f['document_date']);$this->assertSame('Gudang Malang',$f['destination']);$this->assertCount(2,$f['items']);
  }
  public function test_activity_is_detected_per_order_from_the_document_sentence(): void {
   $bongkar=str_replace(['1234567890','Mohon dilaksanakan pemuatan barang berikut :'],['1234567891','Mohon dibongkar barang berikut :'],$this->text());
@@ -36,8 +44,8 @@ class StoPdfParserTest extends TestCase {
   $this->assertCount(1,$r['warnings']);$this->assertStringContainsString('1234567891',$r['warnings'][0]);$this->assertStringContainsString('tidak ditemukan',$r['warnings'][0]);
  }
  public function test_sentence_with_both_words_is_rejected_as_ambiguous(): void {
-  $this->expectException(\RuntimeException::class);
-  (new StoPdfParser())->parseText(str_replace('Mohon dilaksanakan pemuatan barang berikut :','Mohon dibongkar dan dimuat barang berikut :',$this->text()));
+  $r=(new StoPdfParser())->parseText(str_replace('Mohon dilaksanakan pemuatan barang berikut :','Mohon dibongkar dan dimuat barang berikut :',$this->text()));
+  $this->assertSame([],$r['rows']);$this->assertArrayNotHasKey('activity',$r['failed'][0]);$this->assertStringContainsString('ambigu',$r['failed'][0]['message']);
  }
  public function test_indonesian_numbers(): void {
   $p=new StoPdfParser();$this->assertSame('420.750',$p->decimal('420,750',3));$this->assertSame('6942375.00',$p->decimal('6.942.375',2));
